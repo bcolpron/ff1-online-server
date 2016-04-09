@@ -1,0 +1,15 @@
+cmake_minimum_required (VERSION 3.1.0)
+
+project (ff1o-server)
+set(CMAKE_CXX_STANDARD 14) 
+
+SET( CMAKE_EXE_LINKER_FLAGS  " -static-libstdc++")
+
+set(Boost_USE_STATIC_LIBS ON)
+find_package(Boost 1.45.0 REQUIRED COMPONENTS system filesystem regex)
+
+add_executable(ff1o-server src/main.cpp)
+
+target_include_directories(ff1o-server PRIVATE ${Boost_INCLUDE_DIRS})
+target_link_libraries(ff1o-server ${Boost_LIBRARIES})
+
