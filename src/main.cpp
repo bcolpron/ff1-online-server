@@ -27,10 +27,13 @@ public:
     }
 private:
     typedef std::owner_less<websocketpp::connection_hdl> HdlCompare;
-    typedef std::set<websocketpp::connection_hdl,HdlCompare> Connections;
+    typedef std::map<websocketpp::connection_hdl, std::string, HdlCompare> Connections;
 
     void on_open(websocketpp::connection_hdl hdl) {
-        m_connections.insert(hdl);
+        for (auto it : m_connections)
+        {
+            m_server.send(hdl,it.second, websocketpp::frame::opcode::TEXT);
+        }
     }
     
     void on_close(websocketpp::connection_hdl hdl) {
@@ -39,11 +42,12 @@ private:
     
     void on_message(websocketpp::connection_hdl hdl, Server::message_ptr msg)
     {
+        m_connections[hdl] = msg->get_payload();
         for (auto it : m_connections)
         {
-            if (HdlCompare()(it, hdl) || HdlCompare()(hdl, it))
+            if (HdlCompare()(it.first, hdl) || HdlCompare()(hdl, it.first))
             {
-                m_server.send(it,msg);
+                m_server.send(it.first,msg);
             }
         }
     }
