@@ -1,6 +1,7 @@
 #include <set>
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
+#include "Message.h"
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -190,36 +191,38 @@ public:
     }
 private:
     typedef std::owner_less<websocketpp::connection_hdl> HdlCompare;
-    typedef std::map<websocketpp::connection_hdl, std::string, HdlCompare> Connections;
+    typedef std::map<websocketpp::connection_hdl, Message, HdlCompare> Connections;
 
-    void on_open(websocketpp::connection_hdl hdl) {
-        for (auto it : m_connections)
+    void on_open(websocketpp::connection_hdl hdl)
+    {
+        for (const auto& entry : m_connections)
         {
-            m_server.send(hdl,it.second, websocketpp::frame::opcode::TEXT);
+            m_server.send(hdl,toJSON(entry.second), websocketpp::frame::opcode::TEXT);
         }
     }
     
-    void on_close(websocketpp::connection_hdl hdl) {
+    void on_close(websocketpp::connection_hdl hdl)
+    {
         m_connections.erase(hdl);
     }
     
     void on_message(websocketpp::connection_hdl hdl, Server::message_ptr msg)
     {
-        m_connections[hdl] = msg->get_payload();
-        for (auto it : m_connections)
+        m_connections[hdl] = fromJSON<Message>(msg->get_payload());
+        for (const auto& entry : m_connections)
         {
-            if (HdlCompare()(it.first, hdl) || HdlCompare()(hdl, it.first))
+            if (HdlCompare()(entry.first, hdl) || HdlCompare()(hdl, entry.first))
             {
-                m_server.send(it.first,msg);
+                m_server.send(entry.first,msg);
             }
         }
     }
     
     void sendAll(const std::string& msg)
     {
-        for (auto it : m_connections)
+        for (const auto& entry : m_connections)
         {
-            m_server.send(it.first, msg, websocketpp::frame::opcode::TEXT);
+            m_server.send(entry.first, msg, websocketpp::frame::opcode::TEXT);
         }
         
     }
@@ -242,7 +245,8 @@ private:
     std::vector<std::string>::const_iterator nextBotMove = botMoves.begin();
 };
 
-int main() {
+int main()
+{
     WebSocketServer server;
 
     std::cout << "websocket server started" << std::endl; 
