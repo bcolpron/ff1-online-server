@@ -229,10 +229,25 @@ private:
     
     void handleTimer(const boost::system::error_code& e)
     {
-            sendAll(*nextBotMove++);
-            if (nextBotMove == botMoves.end())
+            const auto m = fromJSON<Message>(*nextBotMove);
+            
+            auto collision = false;
+            for (const auto& entry : m_connections)
             {
-                nextBotMove = botMoves.begin();
+                if (m.update.x == entry.second.update.x && m.update.y == entry.second.update.y)
+                {
+                    collision = true;
+                    break;
+                }
+            }
+            
+            if (!collision)
+            {
+                sendAll(*nextBotMove++);
+                if (nextBotMove == botMoves.end())
+                {
+                    nextBotMove = botMoves.begin();
+                }
             }
         
             m_timer->expires_at(m_timer->expires_at() + boost::posix_time::milliseconds(375));
