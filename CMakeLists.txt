@@ -10,6 +10,11 @@ find_package(Boost 1.45.0 REQUIRED COMPONENTS system filesystem regex)
 
 add_executable(ff1o-server src/main.cpp)
 
-target_include_directories(ff1o-server PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(ff1o-server PRIVATE
+    ${Boost_INCLUDE_DIRS}
+    externals/cereal/include
+    include/
+)
+
 target_link_libraries(ff1o-server ${Boost_LIBRARIES})
 
