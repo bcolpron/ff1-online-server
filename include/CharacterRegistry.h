@@ -1,6 +1,10 @@
 #ifndef INCLUDE_CHARACTERREGISTRY_H
 #define INCLUDE_CHARACTERREGISTRY_H
 
+#include "Character.h"
+
+typedef std::string CharacterId;
+
 class CharacterRegistry
 {
 public:

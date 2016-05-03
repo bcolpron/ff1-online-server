@@ -1,6 +1,6 @@
 #include "Bot.h"
 #include "Comm.h"
-#include "CharacterRegistry.h"
+#include "CharacterManager.h"
 #include <set>
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
@@ -20,7 +20,7 @@ public:
         m_server.set_close_handler(std::bind(&ThisType::on_close,this,::_1));
         m_server.set_message_handler(std::bind(&ThisType::on_message,this,::_1,::_2));
         
-        bot_ = std::make_unique<Bot>(m_server.get_io_service(), *this, *this);
+        bot_ = std::make_unique<Bot>(m_server.get_io_service(), *this, manager_);
     }
     
     void run(uint16_t port)
@@ -43,13 +43,13 @@ public:
     
 private:
     typedef std::owner_less<websocketpp::connection_hdl> HdlCompare;
-    typedef std::map<websocketpp::connection_hdl, Message, HdlCompare> Connections;
+    typedef std::map<websocketpp::connection_hdl, CharacterId, HdlCompare> Connections;
 
     void on_open(websocketpp::connection_hdl hdl)
     {
-        for (const auto& entry : m_connections)
+        for (const auto& entry : manager_.getAll())
         {
-            m_server.send(hdl,toJSON(entry.second), websocketpp::frame::opcode::TEXT);
+            m_server.send(hdl,toJSON(entry), websocketpp::frame::opcode::TEXT);
         }
     }
     
@@ -60,7 +60,10 @@ private:
     
     void on_message(websocketpp::connection_hdl hdl, Server::message_ptr msg)
     {
-        m_connections[hdl] = fromJSON<Message>(msg->get_payload());
+        const auto m = fromJSON<Message>(msg->get_payload());
+        m_connections[hdl] = m.from;
+        manager_.addOrUpdate(m.from, m.update);
+        
         for (const auto& entry : m_connections)
         {
             if (HdlCompare()(entry.first, hdl) || HdlCompare()(hdl, entry.first))
@@ -72,18 +75,12 @@ private:
     
     virtual bool isFree(int x, int y)
     {
-        for (const auto& entry : m_connections)
-        {
-            if (x == entry.second.update.x && y == entry.second.update.y)
-            {
-                return false;
-            }
-        }
-        return true;
+        return manager_.isFree(x,y);
     }
     
     Server m_server;
     Connections m_connections;
+    CharacterManager manager_;
     std::unique_ptr<Bot> bot_;
 };
 
