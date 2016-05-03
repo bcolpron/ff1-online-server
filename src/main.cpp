@@ -8,35 +8,35 @@
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-class WebSocketServer: public Comm, public CharacterRegistry {
+class WebSocketServer: public Comm {
      typedef websocketpp::server<websocketpp::config::asio> Server;
      typedef WebSocketServer ThisType;
 public:
     WebSocketServer()
     {
-        m_server.init_asio();
+        server_.init_asio();
                 
-        m_server.set_open_handler(std::bind(&ThisType::on_open,this,::_1));
-        m_server.set_close_handler(std::bind(&ThisType::on_close,this,::_1));
-        m_server.set_message_handler(std::bind(&ThisType::on_message,this,::_1,::_2));
+        server_.set_open_handler(std::bind(&ThisType::on_open,this,::_1));
+        server_.set_close_handler(std::bind(&ThisType::on_close,this,::_1));
+        server_.set_message_handler(std::bind(&ThisType::on_message,this,::_1,::_2));
         
-        bot_ = std::make_unique<Bot>(m_server.get_io_service(), *this, manager_);
+        bot_ = std::make_unique<Bot>(server_.get_io_service(), *this, manager_);
     }
     
     void run(uint16_t port)
     {
-        m_server.set_reuse_addr(true);
-        m_server.listen(port);
-        m_server.start_accept();
-        m_server.run();
+        server_.set_reuse_addr(true);
+        server_.listen(port);
+        server_.start_accept();
+        server_.run();
     }
     
     virtual void sendAll(const Message& msg)
     {
         const auto m = toJSON(msg);
-        for (const auto& entry : m_connections)
+        for (const auto& entry : connections_)
         {
-            m_server.send(entry.first, m, websocketpp::frame::opcode::TEXT);
+            server_.send(entry.first, m, websocketpp::frame::opcode::TEXT);
         }
         
     }
@@ -49,37 +49,32 @@ private:
     {
         for (const auto& entry : manager_.getAll())
         {
-            m_server.send(hdl,toJSON(entry), websocketpp::frame::opcode::TEXT);
+            server_.send(hdl,toJSON(Message{entry.first, entry.second}), websocketpp::frame::opcode::TEXT);
         }
     }
     
     void on_close(websocketpp::connection_hdl hdl)
     {
-        m_connections.erase(hdl);
+        connections_.erase(hdl);
     }
     
     void on_message(websocketpp::connection_hdl hdl, Server::message_ptr msg)
     {
         const auto m = fromJSON<Message>(msg->get_payload());
-        m_connections[hdl] = m.from;
+        connections_[hdl] = m.from;
         manager_.addOrUpdate(m.from, m.update);
         
-        for (const auto& entry : m_connections)
+        for (const auto& entry : connections_)
         {
             if (HdlCompare()(entry.first, hdl) || HdlCompare()(hdl, entry.first))
             {
-                m_server.send(entry.first,msg);
+                server_.send(entry.first,msg);
             }
         }
     }
     
-    virtual bool isFree(int x, int y)
-    {
-        return manager_.isFree(x,y);
-    }
-    
-    Server m_server;
-    Connections m_connections;
+    Server server_;
+    Connections connections_;
     CharacterManager manager_;
     std::unique_ptr<Bot> bot_;
 };
