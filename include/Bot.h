@@ -39,8 +39,9 @@ private:
             if (nextBotMove_ == botMoves_.end()) return;   // no moves, no bot
         
             const auto m = fromJSON<Message>(*nextBotMove_);
+            assert(m.update.size() == 1);
             
-            if (registry_.isFree(m.update.x, m.update.y))
+            if (registry_.isFree(m.update.front().x, m.update.front().y))
             {
                 comm_.sendAll(m);
                 if (++nextBotMove_ == botMoves_.end())

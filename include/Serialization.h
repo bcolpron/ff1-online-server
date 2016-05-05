@@ -2,6 +2,7 @@
 #define INCLUDE_SERIALIZATION_H
 
 #include <cereal/archives/json.hpp>
+#include <cereal/types/vector.hpp>
 
 template<class T>
 std::string toJSON(const T& o)

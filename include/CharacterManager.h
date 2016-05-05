@@ -17,6 +17,11 @@ public:
         return characters_;
     }
     
+    virtual void remove(const CharacterId& id)
+    {
+        characters_.erase(id);
+    }
+    
     virtual bool isFree(int x, int y)
     {
         for (const auto& entry : characters_)

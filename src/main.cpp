@@ -49,20 +49,28 @@ private:
     {
         for (const auto& entry : manager_.getAll())
         {
-            server_.send(hdl,toJSON(Message{entry.first, entry.second}), websocketpp::frame::opcode::TEXT);
+            server_.send(hdl,toJSON(Message{entry.first, {entry.second}}), websocketpp::frame::opcode::TEXT);
         }
     }
     
     void on_close(websocketpp::connection_hdl hdl)
     {
-        connections_.erase(hdl);
+        auto found = connections_.find(hdl);
+        if (found != connections_.end())
+        {
+            const auto id = found->second;
+            connections_.erase(found);
+            manager_.remove(id);
+            sendAll(Message{id, {}, {id}});
+        }
     }
     
     void on_message(websocketpp::connection_hdl hdl, Server::message_ptr msg)
     {
         const auto m = fromJSON<Message>(msg->get_payload());
-        connections_[hdl] = m.from;
-        manager_.addOrUpdate(m.from, m.update);
+        connections_[hdl] = m.id;
+        assert (m.update.size() == 1);
+        manager_.addOrUpdate(m.id, m.update.front());
         
         for (const auto& entry : connections_)
         {
