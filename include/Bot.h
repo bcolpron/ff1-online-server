@@ -43,6 +43,7 @@ private:
             
             if (registry_.isFree(m.update.front().x, m.update.front().y))
             {
+                registry_.addOrUpdate(m.id, m.update.front());
                 comm_.sendAll(m);
                 if (++nextBotMove_ == botMoves_.end())
                 {
