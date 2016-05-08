@@ -20,6 +20,8 @@ public:
         server_.set_close_handler(std::bind(&ThisType::on_close,this,::_1));
         server_.set_message_handler(std::bind(&ThisType::on_message,this,::_1,::_2));
         
+        server_.clear_access_channels(websocketpp::log::alevel::all);
+        
         bot_ = std::make_unique<Bot>(server_.get_io_service(), *this, manager_);
     }
     
