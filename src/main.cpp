@@ -1,14 +1,13 @@
-#include "Bot.h"
-#include "Comm.h"
+#include "Message.h"
 #include "CharacterManager.h"
-#include <set>
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
+#include <set>
 
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-class WebSocketServer: public Comm {
+class WebSocketServer {
      typedef websocketpp::server<websocketpp::config::asio> Server;
      typedef WebSocketServer ThisType;
 public:
@@ -21,8 +20,6 @@ public:
         server_.set_message_handler(std::bind(&ThisType::on_message,this,::_1,::_2));
         
         server_.clear_access_channels(websocketpp::log::alevel::all);
-        
-        bot_ = std::make_unique<Bot>(server_.get_io_service(), *this, manager_);
     }
     
     void run(uint16_t port)
@@ -51,7 +48,7 @@ private:
     {
         for (const auto& entry : manager_.getAll())
         {
-            server_.send(hdl,toJSON(Message{entry.first, {entry.second}}), websocketpp::frame::opcode::TEXT);
+            server_.send(hdl,toJSON(Message{entry.first, {entry.second}, {}}), websocketpp::frame::opcode::TEXT);
         }
     }
     
@@ -86,13 +83,11 @@ private:
     Server server_;
     Connections connections_;
     CharacterManager manager_;
-    std::unique_ptr<Bot> bot_;
 };
 
 int main()
 {
     WebSocketServer server;
-
     std::cout << "websocket server started" << std::endl; 
     server.run(4280);
 }
