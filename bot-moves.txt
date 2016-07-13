@@ -144,7 +144,6 @@
 {"id": "server-bot", "update": [ {"left":155,"top":165,"direction":6,"class":"rm"} ], "removal": [] }
 {"id": "server-bot", "update": [ {"left":154,"top":165,"direction":6,"class":"rm"} ], "removal": [] }
 {"id": "server-bot", "update": [ {"left":153,"top":165,"direction":6,"class":"rm"} ], "removal": [] }
-{"id": "server-bot", "update": [ {"left":153,"top":165,"direction":2,"class":"rm"} ], "removal": [] }
 {"id": "server-bot", "update": [ {"left":153,"top":164,"direction":5,"class":"rm"} ], "removal": [] }
 {"id": "server-bot", "update": [ {"left":153,"top":163,"direction":5,"class":"rm"} ], "removal": [] }
 {"id": "server-bot", "update": [ {"left":153,"top":162,"direction":5,"class":"rm"} ], "removal": [] }
