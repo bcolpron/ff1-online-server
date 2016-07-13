@@ -9,6 +9,8 @@ SET( CMAKE_EXE_LINKER_FLAGS  " -static-libstdc++")
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.45.0 REQUIRED COMPONENTS system filesystem regex)
 
+add_subdirectory ("bot/")
+
 add_executable(ff1o-server src/main.cpp)
 
 target_include_directories(ff1o-server PRIVATE
