@@ -13,15 +13,14 @@ class WebSocketClient: public Comm
      typedef websocketpp::client<websocketpp::config::asio> Client;
      typedef WebSocketClient ThisType;
 public:
-    WebSocketClient()
+    WebSocketClient(boost::asio::io_service& io, CharacterManager& manager)
+    : manager_(manager)
     {
-        client_.init_asio();
+        client_.init_asio(&io);
         client_.set_open_handler(std::bind(&ThisType::on_open,this,::_1));
         client_.set_close_handler(std::bind(&ThisType::on_close,this,::_1));
         client_.set_message_handler(std::bind(&ThisType::on_message,this,::_1,::_2));
         client_.clear_access_channels(websocketpp::log::alevel::all);
-        
-        bot_ = std::make_unique<Bot>(client_.get_io_service(), *this, manager_);
     }
     
     void start()
@@ -34,10 +33,6 @@ public:
         } 
         client_.connect(connection_);
         client_.run();
-    }
-    
-    virtual void send(const Message& msg)
-    {
     }
     
 private:
@@ -55,29 +50,29 @@ private:
     void on_message(websocketpp::connection_hdl hdl, Client::message_ptr msg)
     {
         const auto m = fromJSON<Message>(msg->get_payload());
-        std::cout << m << std::endl;
         for(const auto update: m.update) {
             manager_.addOrUpdate(m.id, update);
         }
         for(const auto id: m.removal) {
             manager_.remove(id);
         }
-
     }
     
-    virtual void sendAll(const Message& msg)
+    virtual void sendAll(const Message& msg) override
     {
         connection_->send(toJSON(msg), websocketpp::frame::opcode::TEXT);
     }
     
+    CharacterManager& manager_;
     Client client_;
     Client::connection_ptr connection_;
-    CharacterManager manager_;
-    std::unique_ptr<Bot> bot_;
 };
 
 int main()
 {
-    WebSocketClient client;
+    boost::asio::io_service io;
+    CharacterManager manager;
+    WebSocketClient client(io, manager);
+    Bot bot(io, static_cast<Comm&>(client), manager);
     client.start();
 }
