@@ -64,7 +64,7 @@ private:
     
     void on_message(websocketpp::connection_hdl hdl, Server::message_ptr msg)
     {
-        std::cout << msg->get_payload() << std::endl;
+        //std::cout << msg->get_payload() << std::endl;
         const auto m = fromJSON<Message>(msg->get_payload());
         assert (m.update.size() >= 1);
         connections_[hdl] = m.update.front().id;
