@@ -43,6 +43,7 @@ private:
         
             auto m = fromJSON<Message>(*nextBotMove_);
             assert(m.update.size() == 1);
+            m.update.front().id = id_;
             
             if (registry_.isFree(m.update.front().x, m.update.front().y))
             {
