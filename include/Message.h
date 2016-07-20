@@ -5,7 +5,6 @@
 
 struct Message
 {
-    std::string id;
     std::vector<Character> update;
     std::vector<std::string> removal;
 };
@@ -13,8 +12,7 @@ struct Message
 template<class Archive>
 void serialize(Archive& archive, Message& o)
 {
-    archive(cereal::make_nvp("id", o.id),
-            cereal::make_nvp("update", o.update),
+    archive(cereal::make_nvp("update", o.update),
             cereal::make_nvp("removal", o.removal));
 }
 

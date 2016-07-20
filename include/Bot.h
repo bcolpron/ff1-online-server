@@ -14,16 +14,16 @@
 class Bot
 {
 public:
-    Bot(boost::asio::io_service& service, Comm& comm, CharacterRegistry& registry)
+    Bot(boost::asio::io_service& service, Comm& comm, CharacterRegistry& registry, const std::string& movesFilePath)
     : id_("bot_" + to_string(boost::uuids::random_generator()())), timer_(service, boost::posix_time::seconds(1)), comm_(comm), registry_(registry)
     {
-        loadFromFile("bot-moves.txt");
+        loadFromFile(movesFilePath);
         timer_.async_wait(std::bind(&Bot::handleTimer, this, std::placeholders::_1));
     }
     
 private:
 
-    void loadFromFile(const char* path)
+    void loadFromFile(const std::string& path)
     {
         std::ifstream file(path);
         std::string line;
@@ -42,13 +42,12 @@ private:
             if (nextBotMove_ == botMoves_.end()) return;   // no moves, no bot
         
             auto m = fromJSON<Message>(*nextBotMove_);
-            m.id = id_;
             assert(m.update.size() == 1);
             
             if (registry_.isFree(m.update.front().x, m.update.front().y))
             {
-                registry_.addOrUpdate(m.id, m.update.front());
-                comm_.sendAll(m);
+                registry_.addOrUpdate(m.update.front());
+                comm_.send(m);
                 if (++nextBotMove_ == botMoves_.end())
                 {
                     nextBotMove_ = botMoves_.begin();

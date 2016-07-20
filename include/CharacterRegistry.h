@@ -11,7 +11,7 @@ class CharacterRegistry
 public:
     typedef std::map<CharacterId, Character> Characters;
     
-    virtual void addOrUpdate(const CharacterId& id, const Character& c) = 0;
+    virtual void addOrUpdate(const Character& c) = 0;
     virtual Characters getAll() const = 0;
     virtual void remove(const CharacterId& id) = 0;
     virtual bool isFree(int x, int y) = 0;

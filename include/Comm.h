@@ -6,7 +6,7 @@ struct Message;
 class Comm
 {
 public:
-    virtual void sendAll(const Message& msg) = 0;
+    virtual void send(const Message& msg) = 0;
 };
 
 #endif

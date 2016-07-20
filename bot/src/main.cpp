@@ -51,14 +51,14 @@ private:
     {
         const auto m = fromJSON<Message>(msg->get_payload());
         for(const auto update: m.update) {
-            manager_.addOrUpdate(m.id, update);
+            manager_.addOrUpdate(update);
         }
         for(const auto id: m.removal) {
             manager_.remove(id);
         }
     }
     
-    virtual void sendAll(const Message& msg) override
+    virtual void send(const Message& msg) override
     {
         connection_->send(toJSON(msg), websocketpp::frame::opcode::TEXT);
     }
@@ -68,11 +68,11 @@ private:
     Client::connection_ptr connection_;
 };
 
-int main()
+int main(int argc, const char* argv[])
 {
     boost::asio::io_service io;
     CharacterManager manager;
     WebSocketClient client(io, manager);
-    Bot bot(io, static_cast<Comm&>(client), manager);
+    Bot bot(io, static_cast<Comm&>(client), manager, argv[1]);
     client.start();
 }

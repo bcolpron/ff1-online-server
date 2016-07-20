@@ -14,11 +14,9 @@ public:
     WebSocketServer()
     {
         server_.init_asio();
-                
         server_.set_open_handler(std::bind(&ThisType::on_open,this,::_1));
         server_.set_close_handler(std::bind(&ThisType::on_close,this,::_1));
         server_.set_message_handler(std::bind(&ThisType::on_message,this,::_1,::_2));
-        
         server_.clear_access_channels(websocketpp::log::alevel::all);
     }
     
@@ -30,7 +28,8 @@ public:
         server_.run();
     }
     
-    virtual void sendAll(const Message& msg)
+private:
+    void sendAll(const Message& msg)
     {
         const auto m = toJSON(msg);
         for (const auto& entry : connections_)
@@ -40,7 +39,6 @@ public:
         
     }
     
-private:
     typedef std::owner_less<websocketpp::connection_hdl> HdlCompare;
     typedef std::map<websocketpp::connection_hdl, CharacterId, HdlCompare> Connections;
 
@@ -48,7 +46,7 @@ private:
     {
         for (const auto& entry : manager_.getAll())
         {
-            server_.send(hdl,toJSON(Message{entry.first, {entry.second}, {}}), websocketpp::frame::opcode::TEXT);
+            server_.send(hdl,toJSON(Message{{entry.second}, {}}), websocketpp::frame::opcode::TEXT);
         }
     }
     
@@ -60,22 +58,23 @@ private:
             const auto id = found->second;
             connections_.erase(found);
             manager_.remove(id);
-            sendAll(Message{id, {}, {id}});
+            sendAll(Message{{}, {id}});
         }
     }
     
     void on_message(websocketpp::connection_hdl hdl, Server::message_ptr msg)
     {
+        std::cout << msg->get_payload() << std::endl;
         const auto m = fromJSON<Message>(msg->get_payload());
-        connections_[hdl] = m.id;
-        assert (m.update.size() == 1);
-        manager_.addOrUpdate(m.id, m.update.front());
+        assert (m.update.size() >= 1);
+        connections_[hdl] = m.update.front().id;
+        manager_.addOrUpdate(m.update.front());
         
         for (const auto& entry : connections_)
         {
             if (HdlCompare()(entry.first, hdl) || HdlCompare()(hdl, entry.first))
             {
-                server_.send(entry.first,msg);
+                server_.send(entry.first, msg);
             }
         }
     }

@@ -7,9 +7,9 @@ class CharacterManager: public CharacterRegistry
 {
 public:
     
-    virtual void addOrUpdate(const CharacterId& id, const Character& c)
+    virtual void addOrUpdate(const Character& c)
     {
-        characters_[id] = c;
+        characters_[c.id] = c;
     }
     
     virtual Characters getAll() const
