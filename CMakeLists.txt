@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.1.0)
 
-project (ff1o-server)
+project (ff1-online-server)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_BUILD_TYPE Debug)
 
@@ -11,13 +11,13 @@ find_package(Boost 1.45.0 REQUIRED COMPONENTS system filesystem regex)
 
 add_subdirectory ("bot/")
 
-add_executable(ff1o-server src/main.cpp)
+add_executable(ff1-online-server src/main.cpp)
 
-target_include_directories(ff1o-server PRIVATE
+target_include_directories(ff1-online-server PRIVATE
     ${Boost_INCLUDE_DIRS}
     externals/cereal/include
     include/
 )
 
-target_link_libraries(ff1o-server ${Boost_LIBRARIES})
+target_link_libraries(ff1-online-server ${Boost_LIBRARIES})
 
