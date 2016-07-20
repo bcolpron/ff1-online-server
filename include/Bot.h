@@ -39,8 +39,17 @@ private:
     
     void handleTimer(const boost::system::error_code& e)
     {
-            if (nextBotMove_ == botMoves_.end()) return;   // no moves, no bot
-        
+        if (nextBotMove_ == botMoves_.end()) return;   // no moves, no bot
+    
+        doMove();
+        timer_.expires_at(timer_.expires_at() + boost::posix_time::milliseconds(375));
+        timer_.async_wait(std::bind(&Bot::handleTimer, this, std::placeholders::_1));
+    }
+    
+    void doMove()
+    {
+        try
+        {
             auto m = fromJSON<Message>(*nextBotMove_);
             assert(m.update.size() == 1);
             m.update.front().id = id_;
@@ -54,9 +63,11 @@ private:
                     nextBotMove_ = botMoves_.begin();
                 }
             }
-        
-            timer_.expires_at(timer_.expires_at() + boost::posix_time::milliseconds(375));
-            timer_.async_wait(std::bind(&Bot::handleTimer, this, std::placeholders::_1));
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << "Bot failed to move: " << std::endl;
+        }
     }
     
     std::string id_;

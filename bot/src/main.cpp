@@ -19,11 +19,20 @@ public:
         client_.init_asio(&io);
         client_.set_open_handler(std::bind(&ThisType::on_open,this,::_1));
         client_.set_close_handler(std::bind(&ThisType::on_close,this,::_1));
+        client_.set_fail_handler(std::bind(&ThisType::on_fail,this,::_1));
         client_.set_message_handler(std::bind(&ThisType::on_message,this,::_1,::_2));
         client_.clear_access_channels(websocketpp::log::alevel::all);
     }
     
     void start()
+    {
+        connect();
+        client_.run();
+    }
+    
+private:
+
+    void connect()
     {
         websocketpp::lib::error_code ec;
         connection_ = client_.get_connection("ws://localhost:4280", ec);
@@ -32,19 +41,23 @@ public:
             throw std::system_error(ec);
         } 
         client_.connect(connection_);
-        client_.run();
     }
-    
-private:
 
     void on_open(websocketpp::connection_hdl hdl)
     {
         std::cout << "Connected!" << std::endl;
     }
     
+    void on_fail(websocketpp::connection_hdl hdl)
+    {
+        std::cerr << "disconnected!" << std::endl;
+        connect();
+    }
+    
     void on_close(websocketpp::connection_hdl hdl)
     {
-        std::cout << "Disconnected!" << std::endl;
+        std::cerr << "Disconnected!" << std::endl;
+        connect();
     }
 
     void on_message(websocketpp::connection_hdl hdl, Client::message_ptr msg)

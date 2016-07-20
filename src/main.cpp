@@ -34,7 +34,14 @@ private:
         const auto m = toJSON(msg);
         for (const auto& entry : connections_)
         {
-            server_.send(entry.first, m, websocketpp::frame::opcode::TEXT);
+            try
+            {
+                server_.send(entry.first, m, websocketpp::frame::opcode::TEXT);
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << "failed to send message to " << entry.second << " " << e.what() << std::endl;
+            }
         }
         
     }
