@@ -52,17 +52,20 @@ private:
     {
         CharacterId id;
         websocketpp::connection_hdl con;
+        std::string location;
     };
     
     typedef std::owner_less<websocketpp::connection_hdl> HdlCompare;
     
     struct ById {};
     struct ByCon {};
+    struct ByLocation {};
     typedef boost::multi_index::multi_index_container<
         Entry,
         boost::multi_index::indexed_by<
             boost::multi_index::ordered_unique<boost::multi_index::tag<ById>, BOOST_MULTI_INDEX_MEMBER(Entry,CharacterId,id)>,
-            boost::multi_index::ordered_unique<boost::multi_index::tag<ByCon>, BOOST_MULTI_INDEX_MEMBER(Entry,websocketpp::connection_hdl,con), HdlCompare>>
+            boost::multi_index::ordered_unique<boost::multi_index::tag<ByCon>, BOOST_MULTI_INDEX_MEMBER(Entry,websocketpp::connection_hdl,con), HdlCompare>,
+            boost::multi_index::ordered_non_unique<boost::multi_index::tag<ByLocation>, BOOST_MULTI_INDEX_MEMBER(Entry,std::string,location)>>
     > Connections;
 
     void on_open(websocketpp::connection_hdl hdl)
@@ -91,7 +94,7 @@ private:
         //std::cout << msg->get_payload() << std::endl;
         const auto m = fromJSON<Message>(msg->get_payload());
         assert (m.update.size() >= 1);
-        connections_.insert(Entry{m.update.front().id, hdl});
+        connections_.insert(Entry{m.update.front().id, hdl, ""});
         manager_.addOrUpdate(m.update.front());
         
         for (const auto& entry : connections_)
