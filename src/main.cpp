@@ -2,7 +2,9 @@
 #include "CharacterManager.h"
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
-#include <set>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -36,18 +38,32 @@ private:
         {
             try
             {
-                server_.send(entry.first, m, websocketpp::frame::opcode::TEXT);
+                server_.send(entry.con, m, websocketpp::frame::opcode::TEXT);
             }
             catch(const std::exception& e)
             {
-                std::cerr << "failed to send message to " << entry.second << " " << e.what() << std::endl;
+                std::cerr << "failed to send message to " << entry.id << " " << e.what() << std::endl;
             }
         }
         
     }
     
+    struct Entry
+    {
+        CharacterId id;
+        websocketpp::connection_hdl con;
+    };
+    
     typedef std::owner_less<websocketpp::connection_hdl> HdlCompare;
-    typedef std::map<websocketpp::connection_hdl, CharacterId, HdlCompare> Connections;
+    
+    struct ById {};
+    struct ByCon {};
+    typedef boost::multi_index::multi_index_container<
+        Entry,
+        boost::multi_index::indexed_by<
+            boost::multi_index::ordered_unique<boost::multi_index::tag<ById>, BOOST_MULTI_INDEX_MEMBER(Entry,CharacterId,id)>,
+            boost::multi_index::ordered_unique<boost::multi_index::tag<ByCon>, BOOST_MULTI_INDEX_MEMBER(Entry,websocketpp::connection_hdl,con), HdlCompare>>
+    > Connections;
 
     void on_open(websocketpp::connection_hdl hdl)
     {
@@ -59,11 +75,11 @@ private:
     
     void on_close(websocketpp::connection_hdl hdl)
     {
-        auto found = connections_.find(hdl);
-        if (found != connections_.end())
+        auto found = connections_.get<ByCon>().find(hdl);
+        if (found != connections_.get<ByCon>().end())
         {
-            const auto id = found->second;
-            connections_.erase(found);
+            const auto id = found->id;
+            connections_.get<ByCon>().erase(found);
             manager_.remove(id);
             sendAll(Message{{}, {id}});
         }
@@ -71,17 +87,18 @@ private:
     
     void on_message(websocketpp::connection_hdl hdl, Server::message_ptr msg)
     {
+        std::cout << server_.get_con_from_hdl(hdl)->get_uri()->str() << std::endl;
         //std::cout << msg->get_payload() << std::endl;
         const auto m = fromJSON<Message>(msg->get_payload());
         assert (m.update.size() >= 1);
-        connections_[hdl] = m.update.front().id;
+        connections_.insert(Entry{m.update.front().id, hdl});
         manager_.addOrUpdate(m.update.front());
         
         for (const auto& entry : connections_)
         {
-            if (HdlCompare()(entry.first, hdl) || HdlCompare()(hdl, entry.first))
+            if (HdlCompare()(entry.con, hdl) || HdlCompare()(hdl, entry.con))
             {
-                server_.send(entry.first, msg);
+                server_.send(entry.con, msg);
             }
         }
     }
