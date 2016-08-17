@@ -35,7 +35,7 @@ private:
     void connect()
     {
         websocketpp::lib::error_code ec;
-        connection_ = client_.get_connection("ws://localhost:4280", ec);
+        connection_ = client_.get_connection("ws://localhost:4280/ws/?location=world", ec);
         if (ec) {
             std::cout << "could not create connection because: " << ec.message() << std::endl;
             throw std::system_error(ec);
