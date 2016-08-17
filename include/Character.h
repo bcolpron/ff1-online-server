@@ -3,9 +3,11 @@
 
 #include "Serialization.h"
 
+typedef std::string CharacterId;
+
 struct Character
 {
-    std::string id;
+    CharacterId id;
     int x;
     int y;
     int direction;

@@ -1,5 +1,4 @@
 #include "Message.h"
-#include "CharacterManager.h"
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
 #include <boost/multi_index_container.hpp>
@@ -53,6 +52,7 @@ private:
         CharacterId id;
         websocketpp::connection_hdl con;
         std::string location;
+        Character character;
     };
     
     typedef std::owner_less<websocketpp::connection_hdl> HdlCompare;
@@ -70,10 +70,11 @@ private:
 
     void on_open(websocketpp::connection_hdl hdl)
     {
-        for (const auto& entry : manager_.getAll())
+        auto range = connections_.get<ByLocation>().equal_range(getLocation(hdl));
+        std::for_each(range.first, range.second, [&](const auto& entry)
         {
-            server_.send(hdl,toJSON(Message{{entry.second}, {}}), websocketpp::frame::opcode::TEXT);
-        }
+            server_.send(hdl,toJSON(Message{{entry.character}, {}}), websocketpp::frame::opcode::TEXT);
+        });
     }
     
     void on_close(websocketpp::connection_hdl hdl)
@@ -83,32 +84,48 @@ private:
         {
             const auto id = found->id;
             connections_.get<ByCon>().erase(found);
-            manager_.remove(id);
             sendAll(Message{{}, {id}});
         }
     }
     
+    std::string getLocation(websocketpp::connection_hdl hdl)
+    {
+        const auto path = server_.get_con_from_hdl(hdl)->get_uri()->get_resource();
+        const auto found = path.find("?location=");
+        assert(found != std::string::npos);
+        return path.substr(found + 10);
+    }
+    
     void on_message(websocketpp::connection_hdl hdl, Server::message_ptr msg)
     {
-        std::cout << server_.get_con_from_hdl(hdl)->get_uri()->str() << std::endl;
         //std::cout << msg->get_payload() << std::endl;
         const auto m = fromJSON<Message>(msg->get_payload());
         assert (m.update.size() >= 1);
-        connections_.insert(Entry{m.update.front().id, hdl, ""});
-        manager_.addOrUpdate(m.update.front());
+        const auto id = m.update.front().id;
+        const auto location = getLocation(hdl);
+        auto inserted = connections_.insert(Entry{id, hdl, location});
+        if (inserted.second)
+        {
+            std::cout << "Client " << id << " connected in '" << location << "'" << std::endl;
+        }
         
-        for (const auto& entry : connections_)
+        connections_.modify(inserted.first, [&](Entry& entry)
+        {
+            entry.character = m.update.front();
+        });
+        
+        auto range = connections_.get<ByLocation>().equal_range(location);
+        std::for_each(range.first, range.second, [&](const auto& entry)
         {
             if (HdlCompare()(entry.con, hdl) || HdlCompare()(hdl, entry.con))
             {
                 server_.send(entry.con, msg);
             }
-        }
+        });
     }
     
     Server server_;
     Connections connections_;
-    CharacterManager manager_;
 };
 
 int main()

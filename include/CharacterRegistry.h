@@ -4,8 +4,6 @@
 #include "Character.h"
 #include <map>
 
-typedef std::string CharacterId;
-
 class CharacterRegistry
 {
 public:
