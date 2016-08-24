@@ -14,14 +14,14 @@ struct Character
     std::string class_;
 };
 
-template<class Archive>
-void serialize(Archive& archive, Character& o)
+template<class Serializer>
+void serialize(Serializer& serial, Character& o)
 {
-    archive(cereal::make_nvp("id", o.id),
-        cereal::make_nvp("left", o.x),
-        cereal::make_nvp("top", o.y),
-        cereal::make_nvp("direction", o.direction),
-        cereal::make_nvp("class", o.class_));
+    serial("id", o.id);
+    serial("left", o.x);
+    serial("top", o.y);
+    serial("direction", o.direction);
+    serial("class", o.class_);
 }
 
 std::ostream& operator<<(std::ostream& out, const Character& c)

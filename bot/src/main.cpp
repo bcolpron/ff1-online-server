@@ -1,4 +1,9 @@
-#include "Bot.h"
+#include <iostream>
+
+
+
+
+/*#include "Bot.h"
 #include "Comm.h"
 #include "CharacterManager.h"
 #include <set>
@@ -79,13 +84,21 @@ private:
     CharacterManager& manager_;
     Client client_;
     Client::connection_ptr connection_;
-};
+};*/
+
+#include "Character.h"
+
 
 int main(int argc, const char* argv[])
 {
-    boost::asio::io_service io;
+    /*boost::asio::io_service io;
     CharacterManager manager;
     WebSocketClient client(io, manager);
     Bot bot(io, static_cast<Comm&>(client), manager, argv[1]);
-    client.start();
+    client.start();*/
+    
+    //std::cout << std::toJSON(std::string("allo")) << std::endl;
+    
+    auto c = fromJSON<Character>("{\"id\": \"server-bot\", \"left\":152,\"top\":159,\"direction\":0,\"class\":\"town/coneria/knight\"}");
+    std::cout << toJSON(c) << std::endl;
 }
