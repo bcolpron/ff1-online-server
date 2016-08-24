@@ -86,7 +86,7 @@ private:
     Client::connection_ptr connection_;
 };*/
 
-#include "Character.h"
+#include "Message.h"
 
 
 int main(int argc, const char* argv[])
@@ -101,4 +101,14 @@ int main(int argc, const char* argv[])
     
     auto c = fromJSON<Character>("{\"id\": \"server-bot\", \"left\":152,\"top\":159,\"direction\":0,\"class\":\"town/coneria/knight\"}");
     std::cout << toJSON(c) << std::endl;
+    
+    std::cout << toJSON(fromJSON<int>("42")) << std::endl;
+    std::cout << toJSON(fromJSON<std::string>("\"allo\"")) << std::endl;
+    
+    auto m = fromJSON<Message>("{\"update\": [ {\"id\": \"server-bot\", \"left\":152,\"top\":159,\"direction\":0,\"class\":\"town/coneria/knight\"} ], \"removal\": [\"a\", \"b\"] }");
+    m.update.push_back(c);
+    m.update.push_back(c);
+    m.removal.push_back("abc122");
+    m.removal.push_back("abc123");
+    std::cout << toJSON(m) << std::endl;
 }
