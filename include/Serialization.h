@@ -144,11 +144,4 @@ void serialize(Serializer& serial, std::string& value)
     serial(value);
 }
 
-template<class Serializer, class T>
-void serialize(Serializer& serial, std::vector<T>& value)
-{
-}
-
-
-
 #endif

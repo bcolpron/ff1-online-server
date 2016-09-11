@@ -1,14 +1,10 @@
-#include <iostream>
-
-
-
-
-/*#include "Bot.h"
+#include "Bot.h"
 #include "Comm.h"
 #include "CharacterManager.h"
 #include <set>
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/client.hpp>
+#include <iostream>
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -84,31 +80,13 @@ private:
     CharacterManager& manager_;
     Client client_;
     Client::connection_ptr connection_;
-};*/
-
-#include "Message.h"
-
+};
 
 int main(int argc, const char* argv[])
 {
-    /*boost::asio::io_service io;
+    boost::asio::io_service io;
     CharacterManager manager;
     WebSocketClient client(io, manager);
     Bot bot(io, static_cast<Comm&>(client), manager, argv[1]);
-    client.start();*/
-    
-    //std::cout << std::toJSON(std::string("allo")) << std::endl;
-    
-    auto c = fromJSON<Character>("{\"id\": \"server-bot\", \"left\":152,\"top\":159,\"direction\":0,\"class\":\"town/coneria/knight\"}");
-    std::cout << toJSON(c) << std::endl;
-    
-    std::cout << toJSON(fromJSON<int>("42")) << std::endl;
-    std::cout << toJSON(fromJSON<std::string>("\"allo\"")) << std::endl;
-    
-    auto m = fromJSON<Message>("{\"update\": [ {\"id\": \"server-bot\", \"left\":152,\"top\":159,\"direction\":0,\"class\":\"town/coneria/knight\"} ], \"removal\": [\"a\", \"b\"] }");
-    m.update.push_back(c);
-    m.update.push_back(c);
-    m.removal.push_back("abc122");
-    m.removal.push_back("abc123");
-    std::cout << toJSON(m) << std::endl;
+    client.start();
 }

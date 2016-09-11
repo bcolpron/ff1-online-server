@@ -10,6 +10,7 @@
 #include "boost/uuid/uuid_io.hpp"
 #include "boost/asio/deadline_timer.hpp"
 #include <fstream>
+#include <iostream>
 
 class Bot
 {
