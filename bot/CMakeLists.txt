@@ -4,7 +4,6 @@ add_executable(ff1-online-bot src/main.cpp)
 
 target_include_directories(ff1-online-bot PRIVATE
     ${Boost_INCLUDE_DIRS}
-    ../externals/cereal/include
     ../include/
     include/
 )

@@ -15,7 +15,6 @@ add_executable(ff1-online-server src/main.cpp)
 
 target_include_directories(ff1-online-server PRIVATE
     ${Boost_INCLUDE_DIRS}
-    externals/cereal/include
     include/
 )
 
