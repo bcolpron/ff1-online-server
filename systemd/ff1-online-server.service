@@ -1,0 +1,8 @@
+[Unit]
+Description=FF1 Online Server
+
+[Service]
+ExecStart=/home/bertin/wrk/ff1-online-server/build/ff1-online-server
+
+[Install]
+WantedBy=multi-user.target

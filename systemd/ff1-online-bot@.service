@@ -1,0 +1,8 @@
+[Unit]
+Description=FF1 Online Server Bot
+
+[Service]
+ExecStart=/home/bertin/wrk/ff1-online-server/build/bot/ff1-online-bot /home/bertin/wrk/ff1-online-server/%i.txt
+
+[Install]
+WantedBy=multi-user.target
